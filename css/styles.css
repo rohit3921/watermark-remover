@@ -1,17 +1,13 @@
-   body {
-       font-family: Arial, sans-serif;
-       display: flex;
-       justify-content: center;
-       align-items: center;
-       height: 100vh;
-       margin: 0;
-   }
+body {
+    background-color: #f8f9fa;
+}
 
-   .container {
-       text-align: center;
-   }
+#app {
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-   #videoPlayer {
-       max-width: 100%;
-       height: auto;
-   }
+canvas {
+    border: 1px solid #ddd;
+    max-width: 100%;
+}
