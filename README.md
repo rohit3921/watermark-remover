@@ -1,1 +1,1 @@
-# watermark-remover
+# vidwatermark-remover
