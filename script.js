@@ -1,111 +1,91 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const videoInput = document.getElementById('videoInput');
-    const videoPlayer = document.getElementById('videoPlayer');
-    const videoContainer = document.getElementById('videoContainer');
-    const overlayCanvas = document.getElementById('overlayCanvas');
-    const imageInput = document.getElementById('imageInput');
-    const processButton = document.getElementById('processButton');
-    const downloadLink = document.getElementById('downloadLink');
+/* css/styles.css */
 
-    let overlayImage = null;
-    let overlayX = 0;
-    let overlayY = 0;
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+}
 
-    videoInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const videoURL = URL.createObjectURL(file);
-            videoPlayer.src = videoURL;
-            videoContainer.style.display = 'block';
-            imageInput.style.display = 'block';
-        }
-    });
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
 
-    videoPlayer.addEventListener('loadedmetadata', () => {
-        overlayCanvas.width = videoPlayer.videoWidth;
-        overlayCanvas.height = videoPlayer.videoHeight;
-    });
+h1 {
+    margin-bottom: 20px;
+}
 
-    imageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                overlayImage = new Image();
-                overlayImage.onload = () => {
-                    drawOverlay();
-                    processButton.style.display = 'block';
-                };
-                overlayImage.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+.upload-section {
+    margin-bottom: 20px;
+}
 
-    let isDragging = false;
-    let dragStartX, dragStartY;
+.upload-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
 
-    overlayCanvas.addEventListener('mousedown', startDrag);
-    overlayCanvas.addEventListener('mousemove', drag);
-    overlayCanvas.addEventListener('mouseup', endDrag);
-    overlayCanvas.addEventListener('mouseleave', endDrag);
+input[type="file"] {
+    padding: 10px;
+    width: 100%;
+    max-width: 400px;
+}
 
-    overlayCanvas.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        startDrag({ clientX: touch.clientX, clientY: touch.clientY });
-    });
-    overlayCanvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        drag({ clientX: touch.clientX, clientY: touch.clientY });
-    });
-    overlayCanvas.addEventListener('touchend', endDrag);
+#videoContainer {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 20px;
+}
 
-    function startDrag(e) {
-        isDragging = true;
-        dragStartX = e.clientX - overlayCanvas.getBoundingClientRect().left;
-        dragStartY = e.clientY - overlayCanvas.getBoundingClientRect().top;
-    }
+#videoPlayer {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+}
 
-    function drag(e) {
-        if (isDragging && overlayImage) {
-            const x = e.clientX - overlayCanvas.getBoundingClientRect().left;
-            const y = e.clientY - overlayCanvas.getBoundingClientRect().top;
-            const dx = x - dragStartX;
-            const dy = y - dragStartY;
-            dragStartX = x;
-            dragStartY = y;
-            drawOverlay(dx, dy);
-        }
-    }
+#overlayCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: move;
+}
 
-    function endDrag() {
-        isDragging = false;
-    }
+.controls {
+    margin-top: 20px;
+}
 
-    function drawOverlay(dx = 0, dy = 0) {
-        const ctx = overlayCanvas.getContext('2d');
-        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-        overlayX += dx;
-        overlayY += dy;
-        ctx.drawImage(overlayImage, overlayX, overlayY);
-    }
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
 
-    processButton.addEventListener('click', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoPlayer.videoWidth;
-        canvas.height = videoPlayer.videoHeight;
-        const ctx = canvas.getContext('2d');
+#downloadLink {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
 
-        ctx.drawImage(videoPlayer, 0, 0);
-        ctx.drawImage(overlayImage, overlayX, overlayY);
+#downloadLink:hover {
+    background-color: #218838;
+}
 
-        canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            downloadLink.href = url;
-            downloadLink.download = 'processed_frame.png';
-            downloadLink.style.display = 'block';
-            alert('Frame processed! Click the download link to save the image.');
-        }, 'image/png');
-    });
-});
+.hidden {
+    display: none;
+}
+
+#errorMessage {
+    margin-top: 20px;
+    color: red;
+}
