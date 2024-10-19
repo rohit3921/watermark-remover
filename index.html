@@ -9,42 +9,15 @@
    <body>
        <div class="container">
            <h1>Watermark Remover</h1>
-           
-           <!-- Video Upload Section -->
-           <div class="upload-section">
-               <label for="videoInput">Upload Video (Max 20 minutes):</label>
-               <input type="file" id="videoInput" accept="video/*">
-           </div>
-           
-           <!-- Video and Overlay Section -->
-           <div id="videoContainer" class="hidden">
+           <input type="file" id="videoInput" accept="video/*">
+           <div id="videoContainer" style="display:none;">
                <video id="videoPlayer" controls></video>
                <canvas id="overlayCanvas"></canvas>
            </div>
-           
-           <!-- Image Upload Section -->
-           <div class="upload-section hidden" id="imageUploadSection">
-               <label for="imageInput">Upload Overlay Image:</label>
-               <input type="file" id="imageInput" accept="image/*">
-           </div>
-           
-           <!-- Controls Section -->
-           <div class="controls hidden" id="controlsSection">
-               <button id="processButton">Process Video</button>
-               <a id="downloadLink" href="#" download class="hidden">Download Processed Video</a>
-           </div>
-           
-           <!-- Loading Indicator -->
-           <div id="loading" class="hidden">
-               <p>Processing... Please wait.</p>
-           </div>
-           
-           <!-- Error Message -->
-           <div id="errorMessage" class="error hidden">
-               <p>Something went wrong. Please try again.</p>
-           </div>
+           <input type="file" id="imageInput" accept="image/*" style="display:none;">
+           <button id="processButton" style="display:none;">Process Video</button>
+           <a id="downloadLink" style="display:none;">Download Processed Video</a>
        </div>
-       
        <script src="js/script.js"></script>
    </body>
    </html>
