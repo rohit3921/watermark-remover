@@ -10,25 +10,25 @@
     <div class="container">
         <h1>Watermark Remover</h1>
         
-        <!-- Video Upload -->
+        <!-- Video Upload Section -->
         <div class="upload-section">
             <label for="videoInput">Upload Video (Max 20 minutes):</label>
             <input type="file" id="videoInput" accept="video/*">
         </div>
         
-        <!-- Video Player and Overlay Canvas -->
+        <!-- Video and Overlay Section -->
         <div id="videoContainer" class="hidden">
             <video id="videoPlayer" controls></video>
             <canvas id="overlayCanvas"></canvas>
         </div>
         
-        <!-- Image Upload -->
+        <!-- Image Upload Section -->
         <div class="upload-section hidden" id="imageUploadSection">
             <label for="imageInput">Upload Overlay Image:</label>
             <input type="file" id="imageInput" accept="image/*">
         </div>
         
-        <!-- Control Buttons -->
+        <!-- Controls Section -->
         <div class="controls hidden" id="controlsSection">
             <button id="processButton">Process Video</button>
             <a id="downloadLink" href="#" download class="hidden">Download Processed Video</a>
@@ -45,8 +45,6 @@
         </div>
     </div>
     
-    <!-- Include FFmpeg.wasm -->
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>
