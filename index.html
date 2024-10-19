@@ -4,20 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watermark Remover</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="container">
         <h1>Watermark Remover</h1>
-        <input type="file" id="videoInput" accept="video/*">
-        <div id="videoContainer" style="display:none;">
+        
+        <!-- Video Upload -->
+        <div class="upload-section">
+            <label for="videoInput">Upload Video (Max 20 minutes):</label>
+            <input type="file" id="videoInput" accept="video/*">
+        </div>
+        
+        <!-- Video Player and Overlay Canvas -->
+        <div id="videoContainer" class="hidden">
             <video id="videoPlayer" controls></video>
             <canvas id="overlayCanvas"></canvas>
         </div>
-        <input type="file" id="imageInput" accept="image/*" style="display:none;">
-        <button id="processButton" style="display:none;">Process Video</button>
-        <a id="downloadLink" style="display:none;">Download Processed Video</a>
+        
+        <!-- Image Upload -->
+        <div class="upload-section hidden" id="imageUploadSection">
+            <label for="imageInput">Upload Overlay Image:</label>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        
+        <!-- Control Buttons -->
+        <div class="controls hidden" id="controlsSection">
+            <button id="processButton">Process Video</button>
+            <a id="downloadLink" href="#" download class="hidden">Download Processed Video</a>
+        </div>
+        
+        <!-- Loading Indicator -->
+        <div id="loading" class="hidden">
+            <p>Processing... Please wait.</p>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="errorMessage" class="error hidden">
+            <p>Something went wrong. Please try again.</p>
+        </div>
     </div>
-    <script src="script.js"></script>
+    
+    <!-- Include FFmpeg.wasm -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>
