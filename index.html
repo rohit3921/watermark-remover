@@ -1,0 +1,24 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watermark Remover</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Watermark Remover</h1>
+        <div id="videoContainer">
+            <video id="videoPlayer" controls></video>
+            <img id="overlayImage" draggable="true">
+        </div>
+        <input type="file" id="videoInput" accept="video/*">
+        <input type="file" id="imageInput" accept="image/*">
+        <button id="processButton">Process Video</button>
+        <a id="downloadLink" style="display: none;">Download Processed Video</a>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
