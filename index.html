@@ -27,9 +27,12 @@
             height: 360px;
             margin: 20px auto;
         }
-        #videoPlayer {
+        #videoPlayer, #canvasOutput {
             width: 100%;
             height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         #overlayImage {
             position: absolute;
@@ -49,12 +52,11 @@
         <h1>Video Watermark Overlay</h1>
         <div id="videoContainer">
             <video id="videoPlayer" controls></video>
+            <canvas id="canvasOutput"></canvas>
             <img id="overlayImage" draggable="true">
         </div>
         <input type="file" id="videoInput" accept="video/*">
         <input type="file" id="imageInput" accept="image/*">
-        <button id="captureButton">Capture Frame</button>
-        <a id="downloadLink" style="display: none;">Download Captured Frame</a>
     </div>
 
     <script>
@@ -62,8 +64,8 @@
         const imageInput = document.getElementById('imageInput');
         const videoPlayer = document.getElementById('videoPlayer');
         const overlayImage = document.getElementById('overlayImage');
-        const captureButton = document.getElementById('captureButton');
-        const downloadLink = document.getElementById('downloadLink');
+        const canvasOutput = document.getElementById('canvasOutput');
+        const ctx = canvasOutput.getContext('2d');
 
         let isDragging = false;
         let currentX;
@@ -76,6 +78,10 @@
         videoInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             videoPlayer.src = URL.createObjectURL(file);
+            videoPlayer.onloadedmetadata = () => {
+                canvasOutput.width = videoPlayer.videoWidth;
+                canvasOutput.height = videoPlayer.videoHeight;
+            };
         });
 
         imageInput.addEventListener('change', (e) => {
@@ -104,3 +110,28 @@
                 setTranslate(currentX, currentY, overlayImage);
             }
         }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+
+        function drawFrame() {
+            ctx.drawImage(videoPlayer, 0, 0, canvasOutput.width, canvasOutput.height);
+            if (overlayImage.complete && overlayImage.naturalHeight !== 0) {
+                ctx.drawImage(overlayImage, xOffset, yOffset, overlayImage.width, overlayImage.height);
+            }
+            requestAnimationFrame(drawFrame);
+        }
+
+        videoPlayer.addEventListener('play', () => {
+            drawFrame();
+        });
+    </script>
+</body>
+</html>
