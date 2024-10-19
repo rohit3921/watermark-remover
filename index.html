@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Watermark Overlay</title>
+    <title>Video Frame Capture with Overlay</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -27,12 +27,9 @@
             height: 360px;
             margin: 20px auto;
         }
-        #videoPlayer, #canvasOutput {
+        #videoPlayer {
             width: 100%;
             height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
         }
         #overlayImage {
             position: absolute;
@@ -41,6 +38,7 @@
             max-width: 100px;
             max-height: 100px;
             cursor: move;
+            display: none;
         }
         input[type="file"], button {
             margin: 10px 0;
@@ -49,14 +47,15 @@
 </head>
 <body>
     <div class="container">
-        <h1>Video Watermark Overlay</h1>
+        <h1>Video Frame Capture with Overlay</h1>
         <div id="videoContainer">
             <video id="videoPlayer" controls></video>
-            <canvas id="canvasOutput"></canvas>
             <img id="overlayImage" draggable="true">
         </div>
         <input type="file" id="videoInput" accept="video/*">
         <input type="file" id="imageInput" accept="image/*">
+        <button id="captureButton">Capture Frame</button>
+        <a id="downloadLink" style="display: none;">Download Captured Frame</a>
     </div>
 
     <script>
@@ -64,8 +63,8 @@
         const imageInput = document.getElementById('imageInput');
         const videoPlayer = document.getElementById('videoPlayer');
         const overlayImage = document.getElementById('overlayImage');
-        const canvasOutput = document.getElementById('canvasOutput');
-        const ctx = canvasOutput.getContext('2d');
+        const captureButton = document.getElementById('captureButton');
+        const downloadLink = document.getElementById('downloadLink');
 
         let isDragging = false;
         let currentX;
@@ -78,10 +77,6 @@
         videoInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             videoPlayer.src = URL.createObjectURL(file);
-            videoPlayer.onloadedmetadata = () => {
-                canvasOutput.width = videoPlayer.videoWidth;
-                canvasOutput.height = videoPlayer.videoHeight;
-            };
         });
 
         imageInput.addEventListener('change', (e) => {
@@ -121,16 +116,22 @@
             el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
         }
 
-        function drawFrame() {
-            ctx.drawImage(videoPlayer, 0, 0, canvasOutput.width, canvasOutput.height);
-            if (overlayImage.complete && overlayImage.naturalHeight !== 0) {
-                ctx.drawImage(overlayImage, xOffset, yOffset, overlayImage.width, overlayImage.height);
-            }
-            requestAnimationFrame(drawFrame);
-        }
+        captureButton.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = videoPlayer.videoWidth;
+            canvas.height = videoPlayer.videoHeight;
 
-        videoPlayer.addEventListener('play', () => {
-            drawFrame();
+            ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(overlayImage, xOffset, yOffset, overlayImage.width, overlayImage.height);
+
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                downloadLink.href = url;
+                downloadLink.download = 'captured_frame.png';
+                downloadLink.style.display = 'block';
+                downloadLink.textContent = 'Download Captured Frame';
+            }, 'image/png', 1.0);
         });
     </script>
 </body>
