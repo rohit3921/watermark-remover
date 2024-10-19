@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadLink = document.getElementById('downloadLink');
 
     let overlayImage = null;
+    let overlayX = 0;
+    let overlayY = 0;
 
     videoInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -80,9 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isDragging = false;
     }
 
-    let overlayX = 0;
-    let overlayY = 0;
-
     function drawOverlay(dx = 0, dy = 0) {
         const ctx = overlayCanvas.getContext('2d');
         ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
@@ -91,35 +90,44 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.drawImage(overlayImage, overlayX, overlayY);
     }
 
-    processButton.addEventListener('click', () => {
+    processButton.addEventListener('click', async () => {
         const canvas = document.createElement('canvas');
         canvas.width = videoPlayer.videoWidth;
         canvas.height = videoPlayer.videoHeight;
         const ctx = canvas.getContext('2d');
 
-        const processFrame = () => {
-            if (videoPlayer.paused || videoPlayer.ended) {
-                return;
-            }
-            ctx.drawImage(videoPlayer, 0, 0);
-            ctx.drawImage(overlayImage, overlayX, overlayY);
-            requestAnimationFrame(processFrame);
+        const stream = canvas.captureStream();
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+
+        const chunks = [];
+        mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            downloadLink.href = url;
+            downloadLink.download = 'processed_video.webm';
+            downloadLink.style.display = 'block';
         };
 
-        videoPlayer.play();
+        mediaRecorder.start();
+
+        videoPlayer.currentTime = 0;
+        await new Promise(resolve => {
+            videoPlayer.onloadeddata = resolve;
+        });
+
+        const processFrame = () => {
+            if (videoPlayer.currentTime < videoPlayer.duration) {
+                ctx.drawImage(videoPlayer, 0, 0);
+                ctx.drawImage(overlayImage, overlayX, overlayY);
+                videoPlayer.currentTime += 1/30; // Assuming 30 fps
+                requestAnimationFrame(processFrame);
+            } else {
+                mediaRecorder.stop();
+                videoPlayer.currentTime = 0;
+            }
+        };
+
         processFrame();
-
-        // This is a simplified version. In a real scenario, you'd need to capture
-        // multiple frames and combine them into a video file, which is complex
-        // to do entirely client-side without additional libraries.
-
-        // For demonstration, we'll just capture the current frame
-        setTimeout(() => {
-            videoPlayer.pause();
-            const dataURL = canvas.toDataURL('image/png');
-            downloadLink.href = dataURL;
-            downloadLink.download = 'processed_frame.png';
-            downloadLink.style.display = 'block';
-        }, 100);
     });
 });
