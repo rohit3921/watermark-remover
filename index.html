@@ -104,38 +104,3 @@
                 setTranslate(currentX, currentY, overlayImage);
             }
         }
-
-        function dragEnd(e) {
-            initialX = currentX;
-            initialY = currentY;
-            isDragging = false;
-        }
-
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
-        }
-
-        captureButton.addEventListener('click', () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = videoPlayer.videoWidth;
-            canvas.height = videoPlayer.videoHeight;
-
-            ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
-            ctx.drawImage(overlayImage, xOffset, yOffset, overlayImage.width, overlayImage.height);
-
-            // Convert canvas to a high-quality JPEG data URL
-            const dataURL = canvas.toDataURL('image/jpeg', 1.0);
-            
-            // Create a temporary link and trigger download
-            const tempLink = document.createElement('a');
-            tempLink.href = dataURL;
-            tempLink.download = 'captured_frame.jpg';
-            tempLink.click();
-
-            // Clean up
-            URL.revokeObjectURL(tempLink.href);
-        });
-    </script>
-</body>
-</html>
