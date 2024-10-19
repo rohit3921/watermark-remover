@@ -124,13 +124,17 @@
             ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
             ctx.drawImage(overlayImage, xOffset, yOffset, overlayImage.width, overlayImage.height);
 
-            canvas.toBlob((blob) => {
-                const url = URL.createObjectURL(blob);
-                downloadLink.href = url;
-                downloadLink.download = 'captured_frame.png';
-                downloadLink.style.display = 'block';
-                downloadLink.textContent = 'Download Captured Frame';
-            }, 'image/png');
+            // Convert canvas to a high-quality JPEG data URL
+            const dataURL = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // Create a temporary link and trigger download
+            const tempLink = document.createElement('a');
+            tempLink.href = dataURL;
+            tempLink.download = 'captured_frame.jpg';
+            tempLink.click();
+
+            // Clean up
+            URL.revokeObjectURL(tempLink.href);
         });
     </script>
 </body>
