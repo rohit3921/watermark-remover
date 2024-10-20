@@ -6,10 +6,11 @@ new Vue({
         videoSrc: '',
         imageSrc: '',
         processedVideoUrl: '',
-        overlayPosition: { x: 0, y: 0 },
+        overlayPosition: { x: 50, y: 50 }, // Default position
         isDragging: false,
         imageScale: 1,
-        originalImageSize: { width: 0, height: 0 }
+        originalImageSize: { width: 0, height: 0 },
+        img: null // Store the image object globally in data
     },
     methods: {
         uploadVideo(event) {
@@ -26,35 +27,45 @@ new Vue({
                 reader.onload = (e) => {
                     this.imageSrc = e.target.result;
                     this.imageUploaded = true;
-                    const img = new Image();
-                    img.onload = () => {
-                        this.originalImageSize = { width: img.width, height: img.height };
-                        this.$nextTick(() => {
-                            this.drawOverlay();
-                        });
+                    this.img = new Image();
+                    this.img.onload = () => {
+                        this.originalImageSize = { width: this.img.width, height: this.img.height };
+                        this.setupCanvas();
                     };
-                    img.src = this.imageSrc;
+                    this.img.src = this.imageSrc;
                 };
                 reader.readAsDataURL(file);
             }
         },
+        setupCanvas() {
+            if (!this.$refs.video || !this.img) return;
+            this.$refs.canvas.width = this.$refs.video.videoWidth;
+            this.$refs.canvas.height = this.$refs.video.videoHeight;
+            this.drawOverlay();
+        },
         drawOverlay() {
-            const video = this.$refs.video;
+            if (!this.img) return;
             const canvas = this.$refs.canvas;
             const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const img = new Image();
-            img.onload = () => {
-                const scaledWidth = this.originalImageSize.width * this.imageScale;
-                const scaledHeight = this.originalImageSize.height * this.imageScale;
-                ctx.drawImage(img, this.overlayPosition.x, this.overlayPosition.y, scaledWidth, scaledHeight);
-            };
-            img.src = this.imageSrc;
+            const scaledWidth = this.originalImageSize.width * this.imageScale;
+            const scaledHeight = this.originalImageSize.height * this.imageScale;
+            ctx.drawImage(this.img, this.overlayPosition.x, this.overlayPosition.y, scaledWidth, scaledHeight);
         },
         startDrag(event) {
             this.isDragging = true;
+            this.updatePosition(event);
+        },
+        drag(event) {
+            if (this.isDragging) {
+                event.preventDefault(); // Prevent default to avoid any unwanted behavior while dragging
+                this.updatePosition(event);
+            }
+        },
+        stopDrag() {
+            this.isDragging = false;
+        },
+        updatePosition(event) {
             const canvas = this.$refs.canvas;
             const rect = canvas.getBoundingClientRect();
             const x = (event.clientX || event.touches[0].clientX) - rect.left;
@@ -62,74 +73,40 @@ new Vue({
             this.overlayPosition = { x, y };
             this.drawOverlay();
         },
-        drag(event) {
-            if (this.isDragging) {
-                event.preventDefault();
-                const canvas = this.$refs.canvas;
-                const rect = canvas.getBoundingClientRect();
-                const x = (event.clientX || event.touches[0].clientX) - rect.left;
-                const y = (event.clientY || event.touches[0].clientY) - rect.top;
-                this.overlayPosition = { x, y };
-                this.drawOverlay();
-            }
-        },
-        stopDrag() {
-            this.isDragging = false;
-        },
-        updateOverlay() {
-            this.drawOverlay();
-        },
         processVideo() {
             const video = this.$refs.video;
-            const canvas = document.createElement('canvas');
+            const canvas = this.$refs.canvas;
             const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            const stream = canvas.captureStream(); // Capture the stream from the canvas
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            let chunks = [];
 
-            const stream = canvas.captureStream();
-            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-            const chunks = [];
-
-            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-            mediaRecorder.onstop = () => {
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 this.processedVideoUrl = URL.createObjectURL(blob);
+                chunks = []; // Clear the chunks array
             };
 
-            mediaRecorder.start();
-            video.currentTime = 0;
-            video.play();
-
-            const processFrame = () => {
-                if (video.ended) {
-                    mediaRecorder.stop();
-                    video.pause();
-                    return;
-                }
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const img = new Image();
-                img.onload = () => {
-                    const scaledWidth = this.originalImageSize.width * this.imageScale;
-                    const scaledHeight = this.originalImageSize.height * this.imageScale;
-                    ctx.drawImage(img, this.overlayPosition.x, this.overlayPosition.y, scaledWidth, scaledHeight);
-                    requestAnimationFrame(processFrame);
+            video.onplay = () => {
+                const draw = () => {
+                    if (!video.paused && !video.ended) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(this.img, this.overlayPosition.x, this.overlayPosition.y, this.originalImageSize.width * this.imageScale, this.originalImageSize.height * this.imageScale);
+                        requestAnimationFrame(draw);
+                    }
                 };
-                img.src = this.imageSrc;
+                draw();
+                recorder.start();
             };
 
-            processFrame();
+            video.onended = () => {
+                recorder.stop();
+            };
+
+            video.currentTime = 0; // Start the video from the beginning
+            video.play();
         }
-    },
-    mounted() {
-        window.addEventListener('mousemove', this.drag);
-        window.addEventListener('mouseup', this.stopDrag);
-        window.addEventListener('touchmove', this.drag);
-        window.addEventListener('touchend', this.stopDrag);
-    },
-    beforeDestroy() {
-        window.removeEventListener('mousemove', this.drag);
-        window.removeEventListener('mouseup', this.stopDrag);
-        window.removeEventListener('touchmove', this.drag);
-        window.removeEventListener('touchend', this.stopDrag);
     }
 });
